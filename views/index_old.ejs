@@ -1,0 +1,69 @@
+<h1>Test page</h1>
+
+<form action="/createTestStep" method="post">
+    <label for="actions"></label>
+    <select name="actions" id="actions">
+        <option value="goToSite">Go to site</option>
+        <option value="enterText">Enter text</option>
+        <option value="addPause">Add 1s pause</option>
+    </select>
+    <button type="button" id="1">Select item</button>
+    <br><br>
+    <input type="text" name="value" placeholder="Value">
+    <br><br>
+    <button type="submit">Create test step</button>
+</form>
+
+<ul>
+    <% allTestSteps?.forEach(function(testStep) { %>
+        <hr>
+        <li>
+            <%= testStep.Action %> - <img style="height: 200px" src=<%=testStep.Screenshot%> alt=""> - <a type="button"
+                    href=<%=`/deleteStep/${allTestSteps?.indexOf(testStep)}`%>>Delete Step</a>
+        </li>
+        <hr>
+        <% }) %>
+</ul>
+
+<br>
+<hr>
+<br>
+
+<form action="/runTest" method="post">
+    <button type="submit">Run test</button>
+</form>
+
+<a href="/resetTest">Reset Test</a>
+
+<br>
+<hr>
+<br>
+
+<h2>Save test</h2>
+<form action="/saveTest" method="post">
+    <input name="testName" type="text" placeholder="Test name">
+    <button type="submit">Submit</button>
+</form>
+
+<br>
+<hr>
+<br>
+
+<h2>Load test</h2>
+<form action="/loadTest" method="post">
+    <select name="loadTest" id="loadTest">
+        <% Object.keys(allSavedTests).forEach(function(key) { %>
+            <option value=<%=key%>>
+                <%=allSavedTests[key]%>
+            </option>
+            <% }) %>
+    </select>
+    <button type="submit">Load test</button>
+</form>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+<script type='text/javascript'>
+    $.get('a.html', null, function (text) {
+        alert($(text).find('#name'));
+    });
+</script>

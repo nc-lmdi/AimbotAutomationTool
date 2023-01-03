@@ -1,0 +1,189 @@
+<% var ejsTestResult=testResult %>
+
+    <head>
+
+        <!-- Font Awesome -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+        <!-- MDB -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.0.1/mdb.min.css" rel="stylesheet" />
+
+        <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.0.1/mdb.min.js"></script>
+
+        <script src="ejs.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+
+        <script>
+
+            function toggleImage(scrnShot) {
+                var screenshot = document.getElementById("screenshotIMG");
+                screenshot.style.visibility = "visible";
+                screenshot.setAttribute("src", scrnShot);
+                removeTestResult()
+            }
+
+            function removeTestResult() {
+                document.getElementById("testResult").remove();
+            }
+            
+            function hightlightFailedStep(id) {
+                document.addEventListener("DOMContentLoaded", function(event) { 
+                    var stepToHightlight = "step<%= failedStep %>";
+                    var failedStep = document.getElementById(stepToHightlight);
+                    failedStep.style.backgroundColor = "#df4759";
+                    failedStep.scrollIntoView({behavior: "smooth", block: "end"})
+                });
+            }
+
+        </script>
+
+        <% if (ejsTestResult==false) { %>
+            <script>
+                hightlightFailedStep("<%= failedStep %>")
+            </script>
+        <% } %>
+        <style>
+        </style>
+
+    </head>
+
+    <body>
+        <div class="container pt-5">
+            <div class="row pt-1 pb-2">
+
+                <div class="col-md-5">
+                    <form action="/runTest" method="post">
+                        <button type="submit" class="btn btn-primary rounded-0 stream-btn" id="play">Play <i
+                                class="fa-solid fa-play"></i></button>
+                    </form>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-outline">
+                        <form action="/loadTest" method="post" id="loadForm">
+                            <select class="form-select" aria-label="Actions" name="loadTest" id="loadTest"
+                                aria-placeholder="Load">
+                                <option value="none" selected disabled>Select test to load</option>
+                                <% Object.keys(allSavedTests).forEach(function(key) { %>
+                                    <option value=<%=key%>>
+                                        <%=allSavedTests[key]%>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" form="loadForm" class="btn btn-primary btn-block rounded-0 file-btn"
+                        id="open">Open <i class="fa-solid fa-folder-open"></i></button>
+                </div>
+                <div class="col-md-2">
+                    <form action="/saveTest" method="post" id="saveForm">
+                        <input name="testName" type="text" placeholder="Test name">
+                    </form>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" form="saveForm" class="btn btn-primary btn-block rounded-0 file-btn"
+                        id="save">Save <i class="fa-solid fa-floppy-disk"></i></button>
+                </div>
+                <div class="col-md-1">
+                    <a type="button" href="/resetTest" class="btn btn-primary btn-block rounded-0 file-btn"
+                        onclick="removeTestResult()" id="reset">Reset
+                        <i class="fa-thin fa-arrow-rotate-right"></i></a>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-4 overflow-auto" style="max-height: 700px; height: 700px;">
+                    <form action="/deleteStep" method="post" id="delete-test-step-form">
+                        <% allTestSteps?.forEach(function(testStep) { %>
+                            <div class="form-check" id="step<%= testStep.Order %>" style="border-radius: 5px;">
+                                <input class="form-check-input" type="radio" name="id" value="<%=`${allTestSteps?.indexOf(testStep)}`%>" />
+                                <label class="form-check-label" for="flexRadioDefault1">
+                                <% if(testStep.Action=="selectElement" ) {%>
+                                    <b> <%= testStep.Order %>. Select Element</b><br>
+                                    <img src="<%= testStep.Screenshot %>" class="img-thumbnail" style="height: 200px;"
+                                        alt="" onclick="toggleImage('<%= testStep.Screenshot %>')">
+                                    <%} else if(testStep.Action=="goToSite" ){ %>
+                                        <b> <%= testStep.Order %>. Go to site: </b> <%= testStep.Value %>
+                                    <%} else if(testStep.Action=="addPause" ){ %>
+                                        <b><%= testStep.Order %>. Wait <%= testStep.Value %> ms</b>
+                                    <%} else if(testStep.Action=="enterText" ){ %>
+                                        <b><%= testStep.Order %>. Enter text: </b><%= testStep.Value %>
+                                    <%} else if(testStep.Action=="pasteText" ){ %>
+                                        <b><%= testStep.Order %>. Paste: clipboard into input field</b>
+                                    <%} else if(testStep.Action=="copyText" ){%>
+                                        <b><%= testStep.Order %>. Copy: text from input field</b>
+                                    <% } else if(testStep.Action=="clearInput" ){%>
+                                        <b><%= testStep.Order %>. Clear: removes input text</b>
+                                    <%} %>
+                                    </label>
+                                    <hr>
+                            </div>
+                            <% }) %>
+                    </form>
+                </div>
+                <div class="col-md-1">
+                    <div class="d-flex" style="height: 100%;">
+                        <div class="vr"></div>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="d-flex justify-content-center" style="height: 100%;">
+                        <% if (ejsTestResult==true) { %>
+                            <div class="align-self-center bg-success p-5 shadow rounded" id="testResult">
+                                <h2 style="color: white;">Test passed!</h2>
+                            </div>
+                        <% } else if (ejsTestResult==false) { %>
+                            <div class="align-self-center bg-danger p-5 shadow rounded" id="testResult">
+                                <h2 style="color: white;">Test failed!</h2>
+                                <h4>Test failed at step: <%= failedStep %></h4>
+                            </div>
+                        <% } %>
+                            <img src="" alt="" class="img-fluid pt-5" style="height: 500px; visibility: hidden;"
+                                        id="screenshotIMG">
+                    </div>
+                </div>
+                <div class="row border-top border-bottom">
+                    <form action="/createTestStep" method="post" id="add-step-form">
+
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="form-outline">
+                                    <select class="form-select" aria-label="Actions" name="actions" id="actions">
+                                        <option value="goToSite">Go To Site</option>
+                                        <option value="enterText">Enter text</option>
+                                        <option value="clearInput">Clear input text</option>
+                                        <option value="copyText">Copy input text</option>
+                                        <option value="pasteText">Paste input text</option>
+                                        <option value="addPause">Add a pause</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline">
+                                    <div class="form-outline border" id="textbox-select">
+                                        <input type="text" name="value" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                    </form>
+                    <div class="col-md-1 d-flex my-auto">
+                        <button type="submit" class="btn btn-primary btn-block rounded-0 delete-btn" id="delete"
+                            form="add-step-form">Add step <i class="fa-solid fa-plus"></i></i></button>
+                    </div>
+                    <div class="col-md-1 d-flex my-auto">
+                        <button type="submit" class="btn btn-primary btn-block rounded-0 delete-btn" id="delete"
+                            form="delete-test-step-form">Delete Step <i class="fa-solid fa-delete-right"></i></button>
+                    </div>
+                    <div class="col-md-6 border-start">
+                        <div class="form-outline">
+                            <textarea class="form-control" id="textAreaExample" rows="4"
+                                style="resize: None;"></textarea>
+                            <label class="form-label" for="textAreaExample">Comment</label>
+                        </div>
+                    </div>
+                </div>
+    </body>
